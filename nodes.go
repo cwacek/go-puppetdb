@@ -10,18 +10,20 @@ type Node struct {
 	Deactivated  *time.Time
 	CatalogTime  *time.Time `json:"catalog_timestamp"`
 	FactsTime    *time.Time `json:"facts_timestamp"`
-	ReportedTime *time.Time `json:"reported_timestamp"`
+	ReportedTime *time.Time `json:"report_timestamp"`
+
+	Facts FactSet
 }
 
 type FactSet map[string]string
 
 /*// Retrieve a list of facts for a given node*/
-func (n *Node) Facts() (FactSet, error) {
+func (n *Node) LoadFacts() error {
 
 	facts := make([]*Fact, 0)
 	err := api_GET(&facts, "/v3/nodes/"+n.Name+"/facts")
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	fact_dict := make(map[string]string)
@@ -29,7 +31,8 @@ func (n *Node) Facts() (FactSet, error) {
 		fact_dict[fact.Key] = fact.Value
 	}
 
-	return fact_dict, nil
+	n.Facts = fact_dict
+	return nil
 }
 
 type Fact struct {

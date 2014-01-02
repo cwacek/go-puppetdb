@@ -40,7 +40,7 @@ func api_GET(obj interface{}, uri string) (err error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
+		return errors.New(req.URL.RequestURI() + resp.Status)
 	}
 
 	decoder := json.NewDecoder(resp.Body)
@@ -52,8 +52,32 @@ func api_GET(obj interface{}, uri string) (err error) {
 	return nil
 }
 
+//Find a node by name with facts populated
+func FindNodeWithFacts(name string) (*Node, error) {
+
+	node, err := FindNode(name)
+	if err != nil {
+		return nil, err
+	}
+
+	node.LoadFacts()
+	return node, nil
+}
+
+//Find a node by name
+func FindNode(name string) (*Node, error) {
+	node := new(Node)
+
+	err := api_GET(&node, "/v3/nodes/"+name)
+	if err != nil {
+		return nil, err
+	}
+
+	return node, nil
+}
+
 // Return a list of all available nodes
-func List() ([]*Node, error) {
+func ListNodes() ([]*Node, error) {
 
 	nodes := make([]*Node, 0)
 
